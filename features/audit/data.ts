@@ -1,4 +1,5 @@
 import { getDb } from "@/lib/db/client";
+import { getCurrentUser } from "@/lib/auth";
 import type { AuditLog } from "@/lib/db/types";
 
 export async function writeAuditLog(entry: {
@@ -8,7 +9,9 @@ export async function writeAuditLog(entry: {
   details?: Record<string, unknown>;
 }) {
   const db = await getDb();
+  const user = await getCurrentUser();
   const { error } = await db.from("audit_logs").insert({
+    user_id: user?.id ?? null,
     action: entry.action,
     entity_type: entry.entity_type ?? "purchase_request",
     entity_id: entry.entity_id,

@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { signOut } from "@/app/login/actions";
 
-const NAV = [
+type ShellUser = { name: string; email: string; role: string; canApprove: boolean };
+
+const NAV: { href: string; label: string; approverOnly?: boolean }[] = [
   { href: "/", label: "Requests" },
   { href: "/requests/new", label: "New Request" },
-  { href: "/approvals", label: "Approvals" },
+  { href: "/approvals", label: "Approvals", approverOnly: true },
   { href: "/categories", label: "Categories" },
   { href: "/audit", label: "Audit" },
 ];
@@ -17,7 +20,7 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-export function Sidebar() {
+export function Sidebar({ user }: { user: ShellUser }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -30,7 +33,7 @@ export function Sidebar() {
 
   const links = (
     <nav aria-label="Main" className="flex flex-col gap-1 p-3">
-      {NAV.map((n) => (
+      {NAV.filter((n) => !n.approverOnly || user.canApprove).map((n) => (
         <Link
           key={n.href}
           href={n.href}
@@ -44,6 +47,17 @@ export function Sidebar() {
           {n.label}
         </Link>
       ))}
+      <div className="mt-4 border-t border-slate-200 pt-3 text-sm">
+        <p className="truncate font-medium text-slate-900">{user.name}</p>
+        <p className="truncate text-xs text-slate-500">
+          {user.email} · {user.role}
+        </p>
+        <form action={signOut}>
+          <button className="mt-2 w-full rounded-md border border-slate-300 px-3 py-1.5 text-left hover:bg-slate-50">
+            Sign out
+          </button>
+        </form>
+      </div>
     </nav>
   );
 

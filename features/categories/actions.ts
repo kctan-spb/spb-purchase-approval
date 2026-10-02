@@ -3,7 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/lib/db/client";
 import { writeAuditLog } from "@/features/audit/data";
+import { getCurrentUser } from "@/lib/auth";
 import type { FormState } from "@/lib/db/types";
+
+const NOT_ADMIN = "Only admins can manage categories.";
+async function isAdmin() {
+  return !!(await getCurrentUser())?.isAdmin;
+}
 
 function refresh() {
   revalidatePath("/categories");
@@ -14,6 +20,7 @@ function refresh() {
 
 export async function createCategory(_prev: FormState, fd: FormData): Promise<FormState> {
   const name = String(fd.get("name") ?? "").trim();
+  if (!(await isAdmin())) return { error: NOT_ADMIN, values: { name } };
   if (!name) return { fieldErrors: { name: "Name is required." }, values: { name } };
   const db = await getDb();
   const { data, error } = await db.from("categories").insert({ name }).select("id").single();
@@ -29,6 +36,7 @@ export async function createCategory(_prev: FormState, fd: FormData): Promise<Fo
 
 export async function renameCategory(id: string, _prev: FormState, fd: FormData): Promise<FormState> {
   const name = String(fd.get("name") ?? "").trim();
+  if (!(await isAdmin())) return { error: NOT_ADMIN, values: { name } };
   if (!name) return { fieldErrors: { name: "Name is required." }, values: { name } };
   const db = await getDb();
   const { data: old } = await db.from("categories").select("name").eq("id", id).maybeSingle();
@@ -53,6 +61,7 @@ export async function renameCategory(id: string, _prev: FormState, fd: FormData)
 }
 
 export async function deleteCategory(id: string) {
+  if (!(await isAdmin())) throw new Error(NOT_ADMIN);
   const db = await getDb();
   const { data: old } = await db.from("categories").select("name").eq("id", id).maybeSingle();
   if (!old) return;

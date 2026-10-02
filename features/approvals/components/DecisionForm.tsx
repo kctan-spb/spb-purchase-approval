@@ -27,16 +27,6 @@ export function DecisionForm({ requestId }: { requestId: string }) {
       <input ref={decisionRef} type="hidden" name="decision" defaultValue="approved" />
 
       <label className="block text-sm font-medium">
-        Your name *
-        <input name="approver" defaultValue={v.approver} className={input} />
-        {fe.approver && (
-          <p role="alert" className="mt-1 text-sm text-rose-600">
-            {fe.approver}
-          </p>
-        )}
-      </label>
-
-      <label className="block text-sm font-medium">
         Comment
         <textarea name="comment" rows={3} defaultValue={v.comment} className={input} />
         {fe.comment && (

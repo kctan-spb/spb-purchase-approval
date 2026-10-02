@@ -87,11 +87,6 @@ export function RequestForm({ categories }: { categories: Category[] }) {
         <input name="vendor" defaultValue={v.vendor} className={input} />
       </label>
 
-      <label className="block text-sm font-medium">
-        Your name
-        <input name="requester" defaultValue={v.requester} className={input} placeholder="Recorded in the audit trail" />
-      </label>
-
       <label className="flex items-center gap-2 text-sm font-medium">
         <input type="checkbox" name="routine" defaultChecked={v.routine === "on"} className="h-4 w-4" />
         Routine / recurring purchase

@@ -7,6 +7,7 @@ import { DecisionForm } from "@/features/approvals/components/DecisionForm";
 import { ApprovalHistory } from "@/features/approvals/components/ApprovalHistory";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatDate, formatMoney } from "@/lib/format";
+import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -15,9 +16,10 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
   const r = await getRequest(id);
   if (!r) notFound();
 
-  const [approvals, audit] = await Promise.all([
+  const [approvals, audit, user] = await Promise.all([
     listApprovalsByRequest(id),
     listAuditLogsForEntity(id),
+    getCurrentUser(),
   ]);
 
   const rows: [string, React.ReactNode][] = [
@@ -48,8 +50,12 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </dl>
 
       <section className="mt-8">
-        {r.status === "pending" ? (
+        {r.status === "pending" && user?.canApprove ? (
           <DecisionForm requestId={r.id} />
+        ) : r.status === "pending" ? (
+          <div role="status" className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+            Awaiting approval. An approver will review this request.
+          </div>
         ) : (
           <div
             className="rounded-lg border border-slate-200 bg-slate-100 p-4 text-sm text-slate-600"
