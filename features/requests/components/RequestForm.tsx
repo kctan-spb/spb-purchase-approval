@@ -6,7 +6,7 @@ import type { Category, FormState } from "@/lib/db/types";
 
 const CURRENCIES = ["USD", "MYR", "SGD", "EUR", "GBP"];
 const input =
-  "mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500";
+  "mt-1 block w-full rounded-md border border-slate-300 bg-white min-h-11 px-3 py-2 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500";
 
 function Err({ msg }: { msg?: string }) {
   return msg ? (
@@ -31,7 +31,15 @@ export function RequestForm({ categories }: { categories: Category[] }) {
 
       <label className="block text-sm font-medium">
         Title *
-        <input name="title" defaultValue={v.title} className={input} aria-invalid={!!fe.title} />
+        <input
+          name="title"
+          defaultValue={v.title}
+          className={input}
+          aria-invalid={!!fe.title}
+          autoComplete="off"
+          autoCapitalize="sentences"
+          enterKeyHint="next"
+        />
         <Err msg={fe.title} />
       </label>
 
@@ -43,16 +51,21 @@ export function RequestForm({ categories }: { categories: Category[] }) {
           defaultValue={v.description}
           className={input}
           aria-invalid={!!fe.description}
+          autoComplete="off"
+          autoCapitalize="sentences"
+          enterKeyHint="enter"
         />
         <Err msg={fe.description} />
       </label>
 
-      <div className="grid grid-cols-3 gap-3">
-        <label className="col-span-2 block text-sm font-medium">
+      <div className="grid grid-cols-[minmax(0,1fr)_6.5rem] gap-3">
+        <label className="block text-sm font-medium">
           Amount *
           <input
             name="amount"
             inputMode="decimal"
+            autoComplete="off"
+            enterKeyHint="next"
             placeholder="0.00"
             defaultValue={v.amount}
             className={input}
@@ -84,21 +97,31 @@ export function RequestForm({ categories }: { categories: Category[] }) {
 
       <label className="block text-sm font-medium">
         Vendor
-        <input name="vendor" defaultValue={v.vendor} className={input} />
+        <input
+          name="vendor"
+          defaultValue={v.vendor}
+          className={input}
+          autoComplete="organization"
+          autoCapitalize="words"
+          enterKeyHint="done"
+        />
       </label>
 
-      <label className="flex items-center gap-2 text-sm font-medium">
-        <input type="checkbox" name="routine" defaultChecked={v.routine === "on"} className="h-4 w-4" />
+      <label className="flex min-h-11 items-center gap-3 text-sm font-medium">
+        <input type="checkbox" name="routine" defaultChecked={v.routine === "on"} className="h-5 w-5 shrink-0" />
         Routine / recurring purchase
       </label>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-md bg-indigo-600 px-4 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
-      >
-        {pending ? "Submitting..." : "Submit request"}
-      </button>
+      {/* Sticky on phones (thumb reach, respects the home-indicator inset); inline on >= md. */}
+      <div className="sticky bottom-0 z-20 -mx-4 -mb-4 border-t border-slate-200 bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:static md:m-0 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
+        <button
+          type="submit"
+          disabled={pending}
+          className="min-h-12 w-full rounded-md bg-indigo-600 px-4 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
+        >
+          {pending ? "Submitting..." : "Submit request"}
+        </button>
+      </div>
     </form>
   );
 }

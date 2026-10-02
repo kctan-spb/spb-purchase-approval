@@ -13,7 +13,7 @@ export function ApprovalHistory({
     return <p className="text-sm text-slate-500">No decision yet.</p>;
   }
   return (
-    <ul className="grid gap-3">
+    <ul className="grid grid-cols-[minmax(0,1fr)] gap-3">
       {approvals.map((a) => {
         // The approver's name is recorded in the matching audit entry.
         const entry = audit.find(
@@ -23,14 +23,14 @@ export function ApprovalHistory({
         const approver = (entry?.details as { approver?: string } | null)?.approver;
         return (
           <li key={a.id} className="rounded-lg border border-slate-200 bg-white p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
               <StatusBadge status={a.decision} />
               <span className="text-xs text-slate-500">
                 {approver ? `${approver} · ` : ""}
                 {formatDate(a.created_at)}
               </span>
             </div>
-            <p className="mt-2 text-sm text-slate-700">
+            <p className="mt-2 text-sm break-words text-slate-700">
               {a.comment ? (
                 <>
                   <span className="font-medium">

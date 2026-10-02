@@ -17,27 +17,30 @@ export default async function AuditPage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <h1 className="mb-6 text-2xl font-semibold">Audit Trail</h1>
+      <h1 className="mb-5 text-xl font-semibold sm:mb-6 sm:text-2xl">Audit Trail</h1>
       {logs.length === 0 ? (
         <p className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">
           No activity recorded yet.
         </p>
       ) : (
-        <ol className="grid gap-2">
+        <ol className="grid grid-cols-[minmax(0,1fr)] gap-2">
           {logs.map((l) => {
             const d = (l.details ?? {}) as Record<string, unknown>;
             const who = (d.approver ?? d.requested_by) as string | undefined;
             const note = (d.comment ?? d.name ?? (d.from ? `${d.from} → ${d.to}` : undefined)) as string | undefined;
             return (
               <li key={l.id} className="rounded-lg border border-slate-200 bg-white p-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                     <span className={`rounded px-2 py-0.5 text-xs font-medium capitalize ${ACTION_STYLE[l.action] ?? "bg-slate-100"}`}>
                       {l.action}
                     </span>
                     <span className="text-sm text-slate-600">{l.entity_type.replace("_", " ")}</span>
                     {l.entity_type === "purchase_request" && l.entity_id && (
-                      <Link href={`/requests/${l.entity_id}`} className="text-sm text-indigo-600 hover:underline">
+                      <Link
+                        href={`/requests/${l.entity_id}`}
+                        className="-my-2 inline-flex min-h-11 items-center px-1 text-sm text-indigo-600 hover:underline"
+                      >
                         View request
                       </Link>
                     )}
@@ -45,7 +48,7 @@ export default async function AuditPage() {
                   <time className="text-xs text-slate-500">{formatDate(l.created_at)}</time>
                 </div>
                 {(who || note) && (
-                  <p className="mt-1 text-sm text-slate-600">
+                  <p className="mt-1 text-sm break-words text-slate-600">
                     {who && <span className="font-medium">{who}</span>}
                     {who && note && " — "}
                     {note}

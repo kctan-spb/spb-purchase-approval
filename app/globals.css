@@ -1,1 +1,60 @@
 @import "tailwindcss";
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Safety net: never allow sideways page scroll (clip keeps position:sticky working). */
+html,
+body {
+  overflow-x: clip;
+}
+
+/* Remove the double-tap-zoom delay on interactive controls. */
+a,
+button,
+select,
+input,
+textarea,
+label,
+summary {
+  touch-action: manipulation;
+}
+
+/* iOS Safari zooms the page when a focused field is < 16px. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
