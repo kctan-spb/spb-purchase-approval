@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { EMAIL_DOMAIN_MESSAGE, isAllowedEmail } from "@/lib/email-domain";
 import type { FormState } from "@/lib/db/types";
 
 export async function signIn(_prev: FormState, fd: FormData): Promise<FormState> {
@@ -24,6 +25,7 @@ export async function signUp(_prev: FormState, fd: FormData): Promise<FormState>
   const fieldErrors: Record<string, string> = {};
   if (!name) fieldErrors.name = "Your name is required.";
   if (!email) fieldErrors.email = "Email is required.";
+  else if (!isAllowedEmail(email)) fieldErrors.email = EMAIL_DOMAIN_MESSAGE;
   if (password.length < 8) fieldErrors.password = "Use at least 8 characters.";
   if (Object.keys(fieldErrors).length) return { fieldErrors, values };
 
@@ -35,7 +37,12 @@ export async function signUp(_prev: FormState, fd: FormData): Promise<FormState>
     password,
     options: { data: { full_name: name }, emailRedirectTo: `${origin}/auth/callback` },
   });
-  if (error) return { error: error.message, values };
+  if (error) {
+    // The database trigger rejects other domains; Supabase reports that as a generic database error.
+    if (/email_domain_not_allowed|database error saving new user/i.test(error.message))
+      return { fieldErrors: { email: EMAIL_DOMAIN_MESSAGE }, values };
+    return { error: error.message, values };
+  }
   // With email confirmation enabled there is no session yet.
   if (!data.session)
     return { error: undefined, values, fieldErrors: { notice: "Check your email to confirm your account, then sign in." } };
