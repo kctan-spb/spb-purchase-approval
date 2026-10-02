@@ -5,14 +5,15 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { signOut } from "@/app/login/actions";
 
-type ShellUser = { name: string; email: string; role: string; canApprove: boolean };
+type ShellUser = { name: string; email: string; role: string; canApprove: boolean; isAdmin: boolean };
 
-const NAV: { href: string; label: string; approverOnly?: boolean }[] = [
+const NAV: { href: string; label: string; approverOnly?: boolean; adminOnly?: boolean }[] = [
   { href: "/", label: "Requests" },
   { href: "/requests/new", label: "New Request" },
   { href: "/approvals", label: "Approvals", approverOnly: true },
   { href: "/categories", label: "Categories" },
   { href: "/audit", label: "Audit" },
+  { href: "/users", label: "Users", adminOnly: true },
 ];
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -80,7 +81,7 @@ export function Sidebar({ user }: { user: ShellUser }) {
 
   const links = (
     <nav aria-label="Main" className="flex flex-col gap-1 p-3">
-      {NAV.filter((n) => !n.approverOnly || user.canApprove).map((n) => (
+      {NAV.filter((n) => (!n.approverOnly || user.canApprove) && (!n.adminOnly || user.isAdmin)).map((n) => (
         <Link
           key={n.href}
           href={n.href}

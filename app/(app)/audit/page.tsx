@@ -56,7 +56,8 @@ export default async function AuditPage({
             const note = (d.comment ??
               d.name ??
               (d.from ? `${d.from} → ${d.to}` : undefined) ??
-              (d.export ? `${d.export} export · ${d.rows} rows · ${d.timeframe}` : undefined)) as string | undefined;
+              (d.export ? `${d.export} export · ${d.rows} rows · ${d.timeframe}` : undefined) ??
+              (d.role_to ? `role: ${d.role_from} → ${d.role_to}` : undefined)) as string | undefined;
             return (
               <li key={l.id} className="rounded-lg border border-slate-200 bg-white p-3">
                 <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
