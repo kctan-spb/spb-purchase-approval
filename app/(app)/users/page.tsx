@@ -37,6 +37,9 @@ export default async function UsersPage() {
           {error.code === "PGRST202"
             ? "The database is missing migration 0005 (user administration). Apply it, then reload."
             : "Could not load users. Please try again."}
+          <p className="mt-2 text-xs break-words text-rose-600">
+            Details: {error.code} {error.message}
+          </p>
         </div>
       ) : (
         <ul className="grid grid-cols-[minmax(0,1fr)] gap-3">

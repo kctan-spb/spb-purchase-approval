@@ -63,3 +63,6 @@ revoke all on function public.list_users(), public.set_user_role(uuid, text) fro
 grant execute on function public.list_users(), public.set_user_role(uuid, text) to authenticated;
 
 commit;
+
+-- Make the API notice the new functions immediately.
+notify pgrst, 'reload schema';
