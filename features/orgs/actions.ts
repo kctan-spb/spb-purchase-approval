@@ -17,6 +17,15 @@ async function setActiveOrg(orgId: string) {
   });
 }
 
+// Turns a database error into something actionable. "Function not found" (PGRST202 / 42883) means
+// the multi-tenant migration (0003) has not been applied to this database yet.
+function rpcErrorMessage(action: string, code?: string, message?: string) {
+  if (code === "PGRST202" || code === "42883" || /schema cache|does not exist/i.test(message ?? ""))
+    return `Could not ${action}: the database has not been updated yet (migration 0003 is missing). Ask the administrator to apply it.`;
+  if (message?.includes("not_authenticated")) return "Your session has expired. Please sign in again.";
+  return `Could not ${action}. Please try again.${code ? ` (error ${code})` : ""}`;
+}
+
 export async function createOrganization(_prev: FormState, fd: FormData): Promise<FormState> {
   const name = String(fd.get("name") ?? "").trim();
   const values = { name };
@@ -27,7 +36,10 @@ export async function createOrganization(_prev: FormState, fd: FormData): Promis
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("create_organization", { p_name: name });
-  if (error || !data) return { error: "Could not create the organization. Please try again.", values };
+  if (error || !data) {
+    console.error("create_organization failed", { code: error?.code, message: error?.message, user: user.id });
+    return { error: rpcErrorMessage("create the organization", error?.code, error?.message), values };
+  }
   await setActiveOrg(data as string);
   revalidatePath("/", "layout");
   redirect("/");
@@ -44,9 +56,10 @@ export async function joinOrganization(_prev: FormState, fd: FormData): Promise<
   const { data, error } = await supabase.rpc("join_organization", { p_code: code });
   if (error || !data) {
     const bad = error?.message?.includes("invalid_invite_code");
+    if (!bad) console.error("join_organization failed", { code: error?.code, message: error?.message, user: user.id });
     return bad
       ? { fieldErrors: { code: "That invite code is not valid." }, values }
-      : { error: "Could not join the organization. Please try again.", values };
+      : { error: rpcErrorMessage("join the organization", error?.code, error?.message), values };
   }
   await setActiveOrg(data as string);
   revalidatePath("/", "layout");
