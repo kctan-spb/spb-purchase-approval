@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getRequest } from "@/features/requests/data";
+import { listApprovalsByRequest } from "@/features/approvals/data";
+import { listAuditLogsForEntity } from "@/features/audit/data";
+import { DecisionForm } from "@/features/approvals/components/DecisionForm";
+import { ApprovalHistory } from "@/features/approvals/components/ApprovalHistory";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatDate, formatMoney } from "@/lib/format";
 
@@ -10,6 +14,11 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
   const { id } = await params;
   const r = await getRequest(id);
   if (!r) notFound();
+
+  const [approvals, audit] = await Promise.all([
+    listApprovalsByRequest(id),
+    listAuditLogsForEntity(id),
+  ]);
 
   const rows: [string, React.ReactNode][] = [
     ["Amount", formatMoney(r.amount, r.currency)],
@@ -37,6 +46,44 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
           </div>
         ))}
       </dl>
+
+      <section className="mt-8">
+        {r.status === "pending" ? (
+          <DecisionForm requestId={r.id} />
+        ) : (
+          <div
+            className="rounded-lg border border-slate-200 bg-slate-100 p-4 text-sm text-slate-600"
+            role="status"
+          >
+            <p>This request has already been {r.status}.</p>
+            <div className="mt-3 flex gap-3">
+              <button disabled className="flex-1 cursor-not-allowed rounded-md bg-emerald-600/40 px-4 py-2 font-medium text-white">
+                Approve
+              </button>
+              <button disabled className="flex-1 cursor-not-allowed rounded-md bg-rose-600/40 px-4 py-2 font-medium text-white">
+                Reject
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section className="mt-8">
+        <h2 className="mb-3 font-semibold">Approval history</h2>
+        <ApprovalHistory approvals={approvals} audit={audit} />
+      </section>
+
+      <section className="mt-8">
+        <h2 className="mb-3 font-semibold">Activity</h2>
+        <ol className="grid gap-2 text-sm">
+          {audit.map((l) => (
+            <li key={l.id} className="flex flex-wrap justify-between gap-2 rounded border border-slate-200 bg-white px-3 py-2">
+              <span className="font-medium capitalize">{l.action}</span>
+              <span className="text-slate-500">{formatDate(l.created_at)}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
     </div>
   );
 }
