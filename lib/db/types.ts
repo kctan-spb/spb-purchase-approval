@@ -2,6 +2,7 @@ export type RequestStatus = "pending" | "approved" | "rejected";
 
 export type PurchaseRequest = {
   id: string;
+  org_id: string;
   user_id: string | null;
   title: string;
   description: string;
@@ -20,6 +21,7 @@ export type PurchaseRequest = {
 
 export type Approval = {
   id: string;
+  org_id: string;
   user_id: string | null;
   request_id: string;
   decision: "approved" | "rejected";
@@ -29,6 +31,7 @@ export type Approval = {
 
 export type Category = {
   id: string;
+  org_id: string;
   user_id: string | null;
   name: string;
   created_at: string;
@@ -36,6 +39,7 @@ export type Category = {
 
 export type AuditLog = {
   id: string;
+  org_id: string;
   user_id: string | null;
   action: string;
   entity_type: string;

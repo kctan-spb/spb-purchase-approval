@@ -1,14 +1,26 @@
-import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/shell/Sidebar";
-import { getCurrentUser } from "@/lib/auth";
+import { requireOrgUser } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  // Redirects to /login (signed out) or /onboarding (no organization yet).
+  const user = await requireOrgUser();
+
+  // Invite code is hidden from plain selects; only admins get it, via RPC.
+  let inviteCode: string | null = null;
+  if (user.isAdmin) {
+    const supabase = await createClient();
+    const { data } = await supabase.rpc("get_invite_code", { p_org: user.orgId });
+    inviteCode = typeof data === "string" ? data : null;
+  }
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
-      <Sidebar user={{ name: user.name, email: user.email, role: user.role, canApprove: user.canApprove }} />
+      <Sidebar
+        user={{ name: user.name, email: user.email, role: user.role, canApprove: user.canApprove }}
+        org={{ id: user.orgId, name: user.orgName, inviteCode }}
+        orgs={user.orgs.map((o) => ({ id: o.id, name: o.name }))}
+      />
       <main className="min-w-0 flex-1 p-4 md:p-8">{children}</main>
     </div>
   );

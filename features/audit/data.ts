@@ -1,5 +1,5 @@
 import { getDb } from "@/lib/db/client";
-import { getCurrentUser } from "@/lib/auth";
+import { getOrgUser, requireOrgUser } from "@/lib/auth";
 import type { AuditLog } from "@/lib/db/types";
 
 export async function writeAuditLog(entry: {
@@ -9,9 +9,11 @@ export async function writeAuditLog(entry: {
   details?: Record<string, unknown>;
 }) {
   const db = await getDb();
-  const user = await getCurrentUser();
+  const user = await getOrgUser();
+  if (!user) throw new Error("Audit log write failed: no active organization");
   const { error } = await db.from("audit_logs").insert({
-    user_id: user?.id ?? null,
+    org_id: user.orgId,
+    user_id: user.id,
     action: entry.action,
     entity_type: entry.entity_type ?? "purchase_request",
     entity_id: entry.entity_id,
@@ -21,10 +23,12 @@ export async function writeAuditLog(entry: {
 }
 
 export async function listAuditLogs(limit = 200): Promise<AuditLog[]> {
+  const { orgId } = await requireOrgUser();
   const db = await getDb();
   const { data, error } = await db
     .from("audit_logs")
     .select("*")
+    .eq("org_id", orgId)
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw new Error(error.message);
@@ -32,10 +36,12 @@ export async function listAuditLogs(limit = 200): Promise<AuditLog[]> {
 }
 
 export async function listAuditLogsForEntity(entityId: string): Promise<AuditLog[]> {
+  const { orgId } = await requireOrgUser();
   const db = await getDb();
   const { data, error } = await db
     .from("audit_logs")
     .select("*")
+    .eq("org_id", orgId)
     .eq("entity_id", entityId)
     .order("created_at", { ascending: true });
   if (error) throw new Error(error.message);
