@@ -10,7 +10,7 @@ export function ApprovalHistory({
   audit: AuditLog[];
 }) {
   if (approvals.length === 0) {
-    return <p className="text-sm text-slate-500">No decision yet.</p>;
+    return <p className="text-sm text-muted">No decision yet.</p>;
   }
   return (
     <ul className="grid grid-cols-[minmax(0,1fr)] gap-3">
@@ -22,15 +22,15 @@ export function ApprovalHistory({
         );
         const approver = (entry?.details as { approver?: string } | null)?.approver;
         return (
-          <li key={a.id} className="rounded-lg border border-slate-200 bg-white p-4">
+          <li key={a.id} className="card p-4">
             <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
               <StatusBadge status={a.decision} />
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-muted">
                 {approver ? `${approver} · ` : ""}
                 {formatDate(a.created_at)}
               </span>
             </div>
-            <p className="mt-2 text-sm break-words text-slate-700">
+            <p className="mt-2 text-sm break-words text-ink">
               {a.comment ? (
                 <>
                   <span className="font-medium">
@@ -39,7 +39,7 @@ export function ApprovalHistory({
                   {a.comment}
                 </>
               ) : (
-                <span className="text-slate-400">No comment.</span>
+                <span className="text-muted italic">No comment.</span>
               )}
             </p>
           </li>

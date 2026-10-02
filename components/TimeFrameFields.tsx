@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { RANGES, type Range } from "@/lib/timeframe";
 
-const field =
-  "min-h-11 w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2 text-base focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:w-auto";
+const field = "field min-w-0 sm:w-auto";
 
 // Form fields (range select + custom dates) for a GET filter form.
 export function TimeFrameFields({
@@ -34,11 +33,11 @@ export function TimeFrameFields({
       </select>
       {value === "custom" && (
         <div className="flex flex-wrap items-center gap-2">
-          <label className="flex items-center gap-2 text-sm text-slate-600">
+          <label className="flex items-center gap-2 text-sm text-muted">
             From
             <input type="date" name="from" defaultValue={from} className={field} />
           </label>
-          <label className="flex items-center gap-2 text-sm text-slate-600">
+          <label className="flex items-center gap-2 text-sm text-muted">
             To
             <input type="date" name="to" defaultValue={to} className={field} />
           </label>

@@ -35,19 +35,20 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
 
   return (
     <div className={`mx-auto max-w-3xl ${decisionOpen ? "pb-32 md:pb-0" : ""}`}>
-      <Link href="/" className="-ml-1 inline-flex min-h-11 items-center px-1 text-sm text-indigo-600 hover:underline">
+      <Link href="/" className="-ml-1 inline-flex min-h-11 items-center px-1 text-sm font-semibold text-brand-700 hover:underline">
         ← All requests
       </Link>
+      <p className="eyebrow mt-2">Request</p>
       <div className="flex items-start justify-between gap-3">
-        <h1 className="min-w-0 flex-1 text-xl font-semibold break-words sm:text-2xl">{r.title}</h1>
+        <h1 className="page-title min-w-0 flex-1 break-words">{r.title}</h1>
         <StatusBadge status={r.status} />
       </div>
-      <p className="mt-3 whitespace-pre-wrap break-words text-slate-700">{r.description}</p>
-      <dl className="mt-6 grid grid-cols-1 gap-3 rounded-lg border border-slate-200 bg-white p-4 sm:grid-cols-2">
+      <p className="mt-3 text-lg leading-relaxed whitespace-pre-wrap break-words text-ink">{r.description}</p>
+      <dl className="card mt-6 grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:p-5">
         {rows.map(([k, v]) => (
           <div key={k} className="min-w-0">
-            <dt className="text-xs uppercase tracking-wide text-slate-500">{k}</dt>
-            <dd className="mt-0.5 font-medium break-words">{v}</dd>
+            <dt className="eyebrow">{k}</dt>
+            <dd className="mt-0.5 text-lg font-semibold break-words text-ink">{v}</dd>
           </div>
         ))}
       </dl>
@@ -56,20 +57,20 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
         {decisionOpen ? (
           <DecisionForm requestId={r.id} />
         ) : r.status === "pending" ? (
-          <div role="status" className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          <div role="status" className="card border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
             Awaiting approval. An approver will review this request.
           </div>
         ) : (
           <div
-            className="rounded-lg border border-slate-200 bg-slate-100 p-4 text-sm text-slate-600"
+            className="card bg-sunken p-4 text-sm text-ink"
             role="status"
           >
             <p>This request has already been {r.status}.</p>
             <div className="mt-3 flex gap-3">
-              <button disabled className="min-h-11 flex-1 cursor-not-allowed rounded-md bg-emerald-600/40 px-4 py-2 font-medium text-white">
+              <button disabled className="min-h-11 flex-1 cursor-not-allowed rounded-xl bg-emerald-700/50 px-4 py-2 font-semibold text-white">
                 Approve
               </button>
-              <button disabled className="min-h-11 flex-1 cursor-not-allowed rounded-md bg-rose-600/40 px-4 py-2 font-medium text-white">
+              <button disabled className="min-h-11 flex-1 cursor-not-allowed rounded-xl bg-brand-600/50 px-4 py-2 font-semibold text-white">
                 Reject
               </button>
             </div>
@@ -78,17 +79,19 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
       </section>
 
       <section className="mt-8">
-        <h2 className="mb-3 font-semibold">Approval history</h2>
+        <p className="eyebrow">Record</p>
+        <h2 className="mb-3 text-xl font-semibold text-ink">Approval history</h2>
         <ApprovalHistory approvals={approvals} audit={audit} />
       </section>
 
       <section className="mt-8">
-        <h2 className="mb-3 font-semibold">Activity</h2>
+        <p className="eyebrow">Audit</p>
+        <h2 className="mb-3 text-xl font-semibold text-ink">Activity</h2>
         <ol className="grid grid-cols-[minmax(0,1fr)] gap-2 text-sm">
           {audit.map((l) => (
-            <li key={l.id} className="flex flex-wrap justify-between gap-x-3 gap-y-1 rounded border border-slate-200 bg-white px-3 py-2">
-              <span className="font-medium capitalize">{l.action}</span>
-              <span className="text-slate-500">{formatDate(l.created_at)}</span>
+            <li key={l.id} className="flex flex-wrap justify-between gap-x-3 gap-y-1 rounded-xl border border-line bg-panel px-3 py-2 shadow-sm">
+              <span className="font-semibold text-ink capitalize">{l.action}</span>
+              <span className="text-muted">{formatDate(l.created_at)}</span>
             </li>
           ))}
         </ol>

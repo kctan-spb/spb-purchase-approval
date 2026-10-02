@@ -73,6 +73,34 @@ summary {
   }
 }
 
+/* Shared presentation primitives for the signed-in app. */
+@layer components {
+  .eyebrow {
+    @apply text-xs font-semibold tracking-[0.16em] text-gold uppercase;
+  }
+  .page-title {
+    @apply text-2xl font-semibold tracking-tight text-ink sm:text-3xl;
+  }
+  .card {
+    @apply rounded-2xl border border-line bg-panel shadow-[0_1px_2px_rgba(42,36,34,0.04),0_6px_20px_-8px_rgba(42,36,34,0.10)];
+  }
+  .field {
+    @apply block min-h-11 w-full rounded-xl border border-line bg-sunken px-3 py-2 text-base text-ink placeholder:text-muted focus:border-brand-500 focus:bg-panel focus:ring-2 focus:ring-brand-500/30 focus:outline-none;
+  }
+  .btn {
+    @apply inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-2 text-sm font-semibold whitespace-nowrap focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-panel focus-visible:outline-none disabled:opacity-60;
+  }
+  .btn-primary {
+    @apply inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-2 text-sm font-semibold whitespace-nowrap focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-panel focus-visible:outline-none disabled:opacity-60 bg-brand-600 text-white shadow-[0_4px_12px_-4px_rgba(176,30,35,0.55)] hover:bg-brand-700 active:bg-brand-800;
+  }
+  .btn-secondary {
+    @apply inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-2 text-sm font-semibold whitespace-nowrap focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-panel focus-visible:outline-none disabled:opacity-60 border border-line bg-panel text-ink shadow-sm hover:bg-sunken active:bg-sunken;
+  }
+  .btn-danger {
+    @apply inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-2 text-sm font-semibold whitespace-nowrap focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-panel focus-visible:outline-none disabled:opacity-60 border border-brand-300 bg-panel text-brand-700 hover:bg-brand-50;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

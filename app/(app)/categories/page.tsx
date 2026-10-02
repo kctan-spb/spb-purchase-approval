@@ -8,15 +8,16 @@ export default async function CategoriesPage() {
   const [categories, user] = await Promise.all([listCategories(), getCurrentUser()]);
   return (
     <div className="mx-auto max-w-xl">
-      <h1 className="mb-5 text-xl font-semibold sm:mb-6 sm:text-2xl">Categories</h1>
+      <p className="eyebrow">Governance</p>
+      <h1 className="page-title mb-5 sm:mb-6">Categories</h1>
       {user?.isAdmin ? (
         <CategoryManager categories={categories} />
       ) : (
         <>
-          <p className="mb-4 text-sm text-slate-500">Only admins can add, rename or delete categories.</p>
+          <p className="mb-4 text-sm text-muted">Only admins can add, rename or delete categories.</p>
           <ul className="grid grid-cols-[minmax(0,1fr)] gap-2">
             {categories.map((c) => (
-              <li key={c.id} className="rounded-lg border border-slate-200 bg-white px-4 py-3 font-medium break-words">
+              <li key={c.id} className="card px-4 py-3 font-semibold break-words text-ink">
                 {c.name}
               </li>
             ))}

@@ -25,34 +25,35 @@ export default async function UsersPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="mb-1 text-xl font-semibold sm:text-2xl">Users</h1>
-      <p className="mb-5 text-sm text-slate-500">
+      <p className="eyebrow">Governance</p>
+      <h1 className="page-title mb-1">Users</h1>
+      <p className="mb-5 text-sm text-muted">
         Everyone who has signed up. Requesters submit and see their own requests, approvers also decide on all
         requests, and admins also manage categories and users. A changed role applies after the person signs out
         and back in.
       </p>
 
       {error ? (
-        <div role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+        <div role="alert" className="card border-brand-300 bg-brand-50 p-4 text-sm text-brand-800">
           {error.code === "PGRST202"
             ? "The database is missing migration 0005 (user administration). Apply it, then reload."
             : "Could not load users. Please try again."}
-          <p className="mt-2 text-xs break-words text-rose-600">
+          <p className="mt-2 text-xs break-words text-brand-700">
             Details: {error.code} {error.message}
           </p>
         </div>
       ) : (
         <ul className="grid grid-cols-[minmax(0,1fr)] gap-3">
           {users.map((u) => (
-            <li key={u.id} className="rounded-lg border border-slate-200 bg-white p-4">
+            <li key={u.id} className="card p-4">
               <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
                 <div className="min-w-0">
-                  <p className="font-medium break-words">
+                  <p className="font-semibold break-words text-ink">
                     {u.full_name || u.email}
-                    {u.id === me.id && <span className="ml-2 text-xs text-slate-500">(you)</span>}
+                    {u.id === me.id && <span className="ml-2 text-xs text-muted">(you)</span>}
                   </p>
-                  <p className="text-sm break-all text-slate-600">{u.email}</p>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="text-sm break-all text-muted">{u.email}</p>
+                  <p className="mt-1 text-xs text-muted">
                     Joined {formatDate(u.created_at)}
                     {u.last_sign_in_at ? ` · last sign-in ${formatDate(u.last_sign_in_at)}` : ""}
                   </p>

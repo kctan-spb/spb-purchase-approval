@@ -1,14 +1,14 @@
 const STYLES: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-800 ring-amber-200",
-  approved: "bg-emerald-100 text-emerald-800 ring-emerald-200",
-  rejected: "bg-rose-100 text-rose-800 ring-rose-200",
+  pending: "bg-amber-50 text-amber-900 ring-amber-300",
+  approved: "bg-emerald-50 text-emerald-900 ring-emerald-300",
+  rejected: "bg-brand-50 text-brand-800 ring-brand-300",
 };
 
 export function StatusBadge({ status }: { status: string }) {
   return (
     <span
-      className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${
-        STYLES[status] ?? "bg-slate-100 text-slate-700 ring-slate-200"
+      className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ring-1 ring-inset ${
+        STYLES[status] ?? "bg-sunken text-ink ring-line"
       }`}
     >
       {status}

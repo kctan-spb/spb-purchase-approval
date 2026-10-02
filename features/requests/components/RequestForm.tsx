@@ -6,11 +6,11 @@ import type { Category, FormState } from "@/lib/db/types";
 
 const CURRENCIES = ["USD", "MYR", "SGD", "EUR", "GBP"];
 const input =
-  "mt-1 block w-full rounded-md border border-slate-300 bg-white min-h-11 px-3 py-2 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500";
+  "field mt-1";
 
 function Err({ msg }: { msg?: string }) {
   return msg ? (
-    <p role="alert" className="mt-1 text-sm text-rose-600">
+    <p role="alert" className="mt-1 text-sm text-brand-700">
       {msg}
     </p>
   ) : null;
@@ -24,12 +24,12 @@ export function RequestForm({ categories }: { categories: Category[] }) {
   return (
     <form action={action} noValidate className="grid gap-4">
       {state.error && (
-        <div role="alert" className="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+        <div role="alert" className="rounded-xl border border-brand-300 bg-brand-50 p-3 text-sm text-brand-800">
           {state.error}
         </div>
       )}
 
-      <label className="block text-sm font-medium">
+      <label className="block text-sm font-semibold text-ink">
         Title *
         <input
           name="title"
@@ -43,7 +43,7 @@ export function RequestForm({ categories }: { categories: Category[] }) {
         <Err msg={fe.title} />
       </label>
 
-      <label className="block text-sm font-medium">
+      <label className="block text-sm font-semibold text-ink">
         Description *
         <textarea
           name="description"
@@ -59,7 +59,7 @@ export function RequestForm({ categories }: { categories: Category[] }) {
       </label>
 
       <div className="grid grid-cols-[minmax(0,1fr)_6.5rem] gap-3">
-        <label className="block text-sm font-medium">
+        <label className="block text-sm font-semibold text-ink">
           Amount *
           <input
             name="amount"
@@ -73,7 +73,7 @@ export function RequestForm({ categories }: { categories: Category[] }) {
           />
           <Err msg={fe.amount} />
         </label>
-        <label className="block text-sm font-medium">
+        <label className="block text-sm font-semibold text-ink">
           Currency
           <select name="currency" defaultValue={v.currency || "USD"} className={input}>
             {CURRENCIES.map((c) => (
@@ -83,7 +83,7 @@ export function RequestForm({ categories }: { categories: Category[] }) {
         </label>
       </div>
 
-      <label className="block text-sm font-medium">
+      <label className="block text-sm font-semibold text-ink">
         Category
         <select name="category" defaultValue={v.category ?? ""} className={input}>
           <option value="">— Select a category —</option>
@@ -95,7 +95,7 @@ export function RequestForm({ categories }: { categories: Category[] }) {
         </select>
       </label>
 
-      <label className="block text-sm font-medium">
+      <label className="block text-sm font-semibold text-ink">
         Vendor
         <input
           name="vendor"
@@ -107,17 +107,17 @@ export function RequestForm({ categories }: { categories: Category[] }) {
         />
       </label>
 
-      <label className="flex min-h-11 items-center gap-3 text-sm font-medium">
-        <input type="checkbox" name="routine" defaultChecked={v.routine === "on"} className="h-5 w-5 shrink-0" />
+      <label className="flex min-h-11 items-center gap-3 text-sm font-semibold text-ink">
+        <input type="checkbox" name="routine" defaultChecked={v.routine === "on"} className="h-5 w-5 shrink-0 accent-brand-600" />
         Routine / recurring purchase
       </label>
 
       {/* Sticky on phones (thumb reach, respects the home-indicator inset); inline on >= md. */}
-      <div className="sticky bottom-0 z-20 -mx-4 -mb-4 border-t border-slate-200 bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:static md:m-0 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
+      <div className="sticky bottom-0 z-20 -mx-4 -mb-4 border-t border-line bg-panel/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:static md:m-0 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
         <button
           type="submit"
           disabled={pending}
-          className="min-h-12 w-full rounded-md bg-indigo-600 px-4 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
+          className="btn-primary min-h-12 w-full px-4 py-2.5 text-base"
         >
           {pending ? "Submitting..." : "Submit request"}
         </button>

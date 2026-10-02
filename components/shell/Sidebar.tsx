@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { signOut } from "@/app/login/actions";
+import { BrandMark } from "@/components/BrandMark";
 
 type ShellUser = { name: string; email: string; role: string; canApprove: boolean; isAdmin: boolean };
 
@@ -87,22 +88,22 @@ export function Sidebar({ user }: { user: ShellUser }) {
           href={n.href}
           onClick={close}
           aria-current={isActive(pathname, n.href) ? "page" : undefined}
-          className={`flex min-h-11 items-center rounded-md px-3 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+          className={`flex min-h-11 items-center rounded-full px-4 py-2 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-panel ${
             isActive(pathname, n.href)
-              ? "bg-indigo-600 text-white"
-              : "text-slate-700 hover:bg-slate-100 active:bg-slate-100"
+              ? "bg-brand-600 text-white shadow-[0_4px_12px_-4px_rgba(176,30,35,0.55)]"
+              : "text-ink hover:bg-sunken active:bg-sunken"
           }`}
         >
           {n.label}
         </Link>
       ))}
-      <div className="mt-4 border-t border-slate-200 pt-3 text-sm">
-        <p className="truncate font-medium text-slate-900">{user.name}</p>
-        <p className="truncate text-xs text-slate-500">
+      <div className="mt-4 border-t border-line px-1 pt-3 text-sm">
+        <p className="truncate font-semibold text-ink">{user.name}</p>
+        <p className="truncate text-xs text-muted">
           {user.email} · {user.role}
         </p>
         <form action={signOut}>
-          <button className="mt-2 flex min-h-11 w-full items-center rounded-md border border-slate-300 px-3 py-1.5 text-left hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+          <button className="btn-secondary mt-2 w-full justify-start px-4">
             Sign out
           </button>
         </form>
@@ -113,8 +114,14 @@ export function Sidebar({ user }: { user: ShellUser }) {
   return (
     <>
       {/* Mobile top bar + hamburger */}
-      <header className="sticky top-0 z-30 flex min-h-14 items-center justify-between gap-3 border-b border-slate-200 bg-white pr-[max(1rem,env(safe-area-inset-right))] pl-[max(1rem,env(safe-area-inset-left))] md:hidden">
-        <span className="min-w-0 truncate font-semibold text-slate-900">Purchase Approvals</span>
+      <header className="sticky top-0 z-30 flex min-h-14 items-center justify-between gap-3 border-b border-line bg-panel pr-[max(1rem,env(safe-area-inset-right))] pl-[max(1rem,env(safe-area-inset-left))] md:hidden">
+        <span className="flex min-w-0 items-center gap-3">
+          <BrandMark size={32} className="shrink-0" />
+          <span className="min-w-0 leading-tight">
+            <span className="eyebrow block truncate !text-[0.65rem]">Selangor Properties</span>
+            <span className="block truncate text-base font-semibold text-ink">Purchase Approvals</span>
+          </span>
+        </span>
         <button
           ref={menuButtonRef}
           type="button"
@@ -122,7 +129,7 @@ export function Sidebar({ user }: { user: ShellUser }) {
           aria-expanded={open}
           aria-controls="mobile-nav"
           onClick={() => setOpen(true)}
-          className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-slate-300 text-xl leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+          className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-line bg-panel text-xl leading-none text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
         >
           <span aria-hidden="true">☰</span>
         </button>
@@ -136,16 +143,16 @@ export function Sidebar({ user }: { user: ShellUser }) {
           />
           <div
             ref={drawerRef}
-            className="relative flex h-full w-72 max-w-[85vw] flex-col overflow-y-auto overscroll-contain bg-white pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] shadow-xl motion-safe:animate-[drawer-in_200ms_ease-out]"
+            className="relative flex h-full w-72 max-w-[85vw] flex-col overflow-y-auto overscroll-contain bg-panel pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] shadow-2xl motion-safe:animate-[drawer-in_200ms_ease-out]"
           >
-            <div className="flex min-h-14 items-center justify-between border-b border-slate-200 pl-4 pr-2 font-semibold">
-              Menu
+            <div className="flex min-h-14 items-center justify-between border-b border-line pl-4 pr-2 font-semibold text-ink">
+              <span className="eyebrow">Menu</span>
               <button
                 ref={closeButtonRef}
                 type="button"
                 aria-label="Close menu"
                 onClick={close}
-                className="flex h-11 w-11 items-center justify-center rounded-md text-xl leading-none hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                className="flex h-11 w-11 items-center justify-center rounded-xl text-xl leading-none hover:bg-sunken focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
               >
                 <span aria-hidden="true">✕</span>
               </button>
@@ -155,10 +162,14 @@ export function Sidebar({ user }: { user: ShellUser }) {
         </div>
       )}
       {/* Desktop / tablet sidebar */}
-      <aside className="hidden w-48 shrink-0 border-r border-slate-200 bg-white md:block lg:w-60">
+      <aside className="hidden w-52 shrink-0 border-r border-line bg-panel md:block lg:w-64">
         <div className="sticky top-0">
-          <div className="border-b border-slate-200 px-4 py-4 font-semibold text-slate-900">
-            Purchase Approvals
+          <div className="flex items-center gap-3 border-b border-line px-4 py-5">
+            <BrandMark size={40} className="shrink-0" />
+            <div className="min-w-0 leading-tight">
+              <p className="eyebrow !text-[0.65rem]">Selangor Properties</p>
+              <p className="text-lg font-semibold text-ink">Purchase Approvals</p>
+            </div>
           </div>
           {links}
         </div>

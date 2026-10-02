@@ -18,7 +18,7 @@ export function RoleForm({ userId, role, isSelf }: { userId: string; role: strin
         name="role"
         defaultValue={role}
         aria-label="Role"
-        className="min-h-11 rounded-md border border-slate-300 bg-white px-3 py-2 text-base focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        className="field w-auto"
       >
         {ROLES.map((r) => (
           <option key={r.value} value={r.value}>
@@ -28,7 +28,7 @@ export function RoleForm({ userId, role, isSelf }: { userId: string; role: strin
       </select>
       <button
         disabled={pending}
-        className="min-h-11 rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-900 disabled:opacity-60"
+        className="btn-primary px-4"
         onClick={(e) => {
           if (isSelf && !confirm("You are changing your own role. Continue?")) e.preventDefault();
         }}
@@ -36,12 +36,12 @@ export function RoleForm({ userId, role, isSelf }: { userId: string; role: strin
         {pending ? "Saving..." : "Save"}
       </button>
       {state.values?.role && !state.error && (
-        <span role="status" className="text-sm text-emerald-700">
+        <span role="status" className="text-sm text-emerald-800">
           Saved. They need to sign out and back in.
         </span>
       )}
       {state.error && (
-        <span role="alert" className="w-full text-sm text-rose-600">
+        <span role="alert" className="w-full text-sm text-brand-700">
           {state.error}
         </span>
       )}

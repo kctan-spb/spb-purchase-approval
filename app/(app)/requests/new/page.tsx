@@ -7,7 +7,8 @@ export default async function NewRequestPage() {
   const categories = await listCategories();
   return (
     <div className="mx-auto max-w-xl">
-      <h1 className="mb-5 text-xl font-semibold sm:mb-6 sm:text-2xl">New Request</h1>
+      <p className="eyebrow">Requests</p>
+      <h1 className="page-title mb-5 sm:mb-6">New request</h1>
       <RequestForm categories={categories} />
     </div>
   );

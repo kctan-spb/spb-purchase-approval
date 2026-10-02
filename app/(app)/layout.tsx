@@ -9,7 +9,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
       <Sidebar user={{ name: user.name, email: user.email, role: user.role, canApprove: user.canApprove, isAdmin: user.isAdmin }} />
-      <main className="min-w-0 flex-1 px-[max(1rem,env(safe-area-inset-left))] pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:p-8">
+      <main className="min-w-0 flex-1 px-[max(1rem,env(safe-area-inset-left))] pt-5 pb-[max(1rem,env(safe-area-inset-bottom))] md:p-10">
         {children}
       </main>
     </div>
