@@ -3,6 +3,9 @@ import { listRequests, spendingSummary } from "@/features/requests/data";
 import { listCategories } from "@/features/categories/data";
 import { RequestList } from "@/features/requests/components/RequestList";
 import { formatMoney } from "@/lib/format";
+import { filterQuery, resolveTimeframe } from "@/lib/timeframe";
+import { TimeFrameFields } from "@/components/TimeFrameFields";
+import { ExportButton } from "@/components/ExportButton";
 
 export const dynamic = "force-dynamic";
 
@@ -11,18 +14,26 @@ const STATUSES = ["pending", "approved", "rejected"];
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; category?: string }>;
+  searchParams: Promise<{ status?: string; category?: string; range?: string; from?: string; to?: string }>;
 }) {
   const sp = await searchParams;
   const status = STATUSES.includes(sp.status ?? "") ? sp.status : undefined;
   const category = sp.category || undefined;
-  const filtered = !!(status || category);
+  const tf = resolveTimeframe(sp);
+  const filtered = !!(status || category || tf.range !== "all");
 
   const [requests, categories, summary] = await Promise.all([
-    listRequests({ status, category }),
+    listRequests({ status, category, from: tf.from, to: tf.to }),
     listCategories(),
-    spendingSummary(),
+    spendingSummary({ from: tf.from, to: tf.to }),
   ]);
+  const exportHref = `/api/export?${filterQuery({
+    status,
+    category,
+    range: tf.range === "all" ? undefined : tf.range,
+    from: tf.range === "custom" ? tf.fromInput : undefined,
+    to: tf.range === "custom" ? tf.toInput : undefined,
+  })}`;
 
   const select =
     "min-h-11 w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2 text-base focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:w-auto sm:max-w-56";
@@ -31,13 +42,19 @@ export default async function Home({
     <div className="mx-auto max-w-4xl">
       <div className="mb-5 flex items-center justify-between gap-3 sm:mb-6">
         <h1 className="min-w-0 text-xl font-semibold sm:text-2xl">Purchase Requests</h1>
-        <Link
-          href="/requests/new"
-          className="inline-flex min-h-11 shrink-0 items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium whitespace-nowrap text-white hover:bg-indigo-700"
-        >
-          New Request
-        </Link>
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          <ExportButton href={exportHref} />
+          <Link
+            href="/requests/new"
+            className="inline-flex min-h-11 shrink-0 items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium whitespace-nowrap text-white hover:bg-indigo-700"
+          >
+            New Request
+          </Link>
+        </div>
       </div>
+      <p className="-mt-3 mb-4 text-xs text-slate-500 sm:-mt-4">
+        Showing: {tf.label}. Totals and the CSV export follow the filters below.
+      </p>
 
       <div className="mb-5 grid grid-cols-2 gap-3 sm:mb-6">
         <div className="min-w-0 rounded-lg border border-amber-200 bg-amber-50 p-3 sm:p-4">
@@ -69,6 +86,7 @@ export default async function Home({
             </option>
           ))}
         </select>
+        <TimeFrameFields range={tf.range} from={tf.fromInput} to={tf.toInput} />
         <div className="flex items-center gap-2">
           <button className="min-h-11 flex-1 rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-900 sm:flex-none">
             Filter
