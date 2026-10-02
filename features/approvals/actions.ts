@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/lib/db/client";
-import { getOrgUser } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import { writeAuditLog } from "@/features/audit/data";
 import type { FormState } from "@/lib/db/types";
 
@@ -11,7 +11,7 @@ type Decision = "approved" | "rejected";
 async function decide(requestId: string, decision: Decision, comment: string): Promise<FormState> {
   const values = { comment };
 
-  const user = await getOrgUser();
+  const user = await getCurrentUser();
   if (!user) return { error: "Your session has expired. Please sign in again.", values };
   // Enforced again by RLS; this gives a friendly message instead of a DB error.
   if (!user.canApprove) return { error: "Only approvers can approve or reject requests.", values };
@@ -24,7 +24,6 @@ async function decide(requestId: string, decision: Decision, comment: string): P
     const { data: current, error: readErr } = await db
       .from("purchase_requests")
       .select("id, status")
-      .eq("org_id", user.orgId)
       .eq("id", requestId)
       .maybeSingle();
     if (readErr) throw readErr;
@@ -35,7 +34,7 @@ async function decide(requestId: string, decision: Decision, comment: string): P
     // One decision per request: the unique index on approvals.request_id guards races.
     const { error: insErr } = await db
       .from("approvals")
-      .insert({ org_id: user.orgId, request_id: requestId, decision, comment: comment || null, user_id: user.id });
+      .insert({ request_id: requestId, decision, comment: comment || null, user_id: user.id });
     if (insErr) {
       if (insErr.code === "23505")
         return { error: "This request has already been decided.", values };
@@ -45,7 +44,6 @@ async function decide(requestId: string, decision: Decision, comment: string): P
     const { data: updated, error: updErr } = await db
       .from("purchase_requests")
       .update({ status: decision })
-      .eq("org_id", user.orgId)
       .eq("id", requestId)
       .eq("status", "pending")
       .select("id");

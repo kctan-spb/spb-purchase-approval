@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { signOut } from "@/app/login/actions";
-import { switchOrganization } from "@/features/orgs/actions";
 
 type ShellUser = { name: string; email: string; role: string; canApprove: boolean };
 
@@ -23,17 +22,7 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-type ShellOrg = { id: string; name: string; inviteCode: string | null };
-
-export function Sidebar({
-  user,
-  org,
-  orgs,
-}: {
-  user: ShellUser;
-  org: ShellOrg;
-  orgs: { id: string; name: string }[];
-}) {
+export function Sidebar({ user }: { user: ShellUser }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -91,39 +80,6 @@ export function Sidebar({
 
   const links = (
     <nav aria-label="Main" className="flex flex-col gap-1 p-3">
-      <div className="mb-2 rounded-md bg-slate-50 p-2 text-sm">
-        {orgs.length > 1 ? (
-          <form action={switchOrganization}>
-            <label className="block text-xs uppercase tracking-wide text-slate-500">
-              Organization
-              <select
-                name="orgId"
-                defaultValue={org.id}
-                onChange={(e) => e.currentTarget.form?.requestSubmit()}
-                className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm normal-case text-slate-900"
-              >
-                {orgs.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    {o.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </form>
-        ) : (
-          <p className="truncate font-medium text-slate-900" title={org.name}>
-            {org.name}
-          </p>
-        )}
-        {org.inviteCode && (
-          <p className="mt-1 text-xs text-slate-500">
-            Invite code: <code className="select-all font-mono text-slate-800">{org.inviteCode}</code>
-          </p>
-        )}
-        <Link href="/onboarding" className="mt-1 block text-xs text-indigo-600 hover:underline">
-          Create or join another
-        </Link>
-      </div>
       {NAV.filter((n) => !n.approverOnly || user.canApprove).map((n) => (
         <Link
           key={n.href}

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getDb } from "@/lib/db/client";
-import { getOrgUser } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import { toCsv } from "@/lib/csv";
 import { resolveTimeframe } from "@/lib/timeframe";
 import { writeAuditLog } from "@/features/audit/data";
@@ -30,7 +30,7 @@ const str = (d: Details, k: string) => (d && typeof d[k] === "string" ? (d[k] as
 // Exports exactly what the signed-in user may see (RLS applies): requesters get their own
 // requests, approvers/admins get the whole organization. Honors the status/category/time filters.
 export async function GET(request: NextRequest) {
-  const user = await getOrgUser();
+  const user = await getCurrentUser();
   if (!user) return new NextResponse("Unauthorized", { status: 401 });
 
   const sp = request.nextUrl.searchParams;
@@ -58,7 +58,6 @@ export async function GET(request: NextRequest) {
         let q = db
           .from("audit_logs")
           .select("created_at, action, entity_type, entity_id, user_id, details")
-          .eq("org_id", user.orgId)
           .order("created_at", { ascending: false })
           .order("id")
           .range(a, b);
@@ -94,7 +93,6 @@ export async function GET(request: NextRequest) {
         let q = db
           .from("purchase_requests")
           .select("id, created_at, title, description, amount, currency, category, vendor, routine, status")
-          .eq("org_id", user.orgId)
           .order("created_at", { ascending: false })
           .order("id")
           .range(a, b);
@@ -114,7 +112,6 @@ export async function GET(request: NextRequest) {
         db
           .from("approvals")
           .select("request_id, decision, comment, created_at")
-          .eq("org_id", user.orgId)
           .order("id")
           .range(a, b),
       );
@@ -122,7 +119,6 @@ export async function GET(request: NextRequest) {
         db
           .from("audit_logs")
           .select("entity_id, action, details")
-          .eq("org_id", user.orgId)
           .eq("entity_type", "purchase_request")
           .in("action", ["create", "approve", "reject"])
           .order("id")
