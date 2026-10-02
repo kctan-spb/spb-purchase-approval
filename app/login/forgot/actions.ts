@@ -13,7 +13,8 @@ export async function requestReset(_prev: FormState, fd: FormData): Promise<Form
     return { fieldErrors: { email: "Enter a valid email address." }, values: { email } };
 
   const h = await headers();
-  const origin = h.get("origin") ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
+  // Redirect links are built from the configured app URL; the request origin is only a fallback.
+  const origin = (process.env.NEXT_PUBLIC_APP_URL || h.get("origin") || "").replace(/\/+$/, "");
   try {
     const supabase = await createClient();
     await supabase.auth.resetPasswordForEmail(email, {

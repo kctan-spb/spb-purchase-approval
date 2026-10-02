@@ -6,6 +6,7 @@ import { signIn, signUp } from "./actions";
 import type { FormState } from "@/lib/db/types";
 import { AuthShell, ErrorAlert, NoticeAlert, linkClass, primaryButton } from "@/components/auth/AuthShell";
 import { Field } from "@/components/auth/Field";
+import { ALLOWED_EMAIL_DOMAIN } from "@/lib/email-domain";
 
 export default function LoginPage() {
   const [mode, setMode] = useState<"in" | "up">("in");
@@ -23,7 +24,17 @@ export default function LoginPage() {
         {mode === "up" && (
           <Field label="Full name" name="name" icon="user" autoComplete="name" enterKeyHint="next" defaultValue={state.values?.name} error={fe.name} />
         )}
-        <Field label="Email" name="email" kind="email" icon="mail" autoComplete="email" enterKeyHint="next" defaultValue={state.values?.email} error={fe.email} />
+        <Field
+          label="Email"
+          name="email"
+          kind="email"
+          icon="mail"
+          autoComplete="email"
+          enterKeyHint="next"
+          defaultValue={state.values?.email}
+          error={fe.email}
+          hint={mode === "up" ? `Use your @${ALLOWED_EMAIL_DOMAIN} email` : undefined}
+        />
         <Field
           label="Password"
           name="password"

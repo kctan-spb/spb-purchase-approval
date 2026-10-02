@@ -7,10 +7,14 @@ export type PurchaseRequest = {
   description: string;
   amount: number;
   currency: string;
+  /** MYR equivalent. Equals amount for MYR requests; null only for old rows that never had one. */
+  amount_myr: number | null;
   category: string | null;
   routine: boolean;
   status: RequestStatus;
   vendor: string | null;
+  requester_name: string | null;
+  requester_email: string | null;
   ai_category: string | null;
   ai_category_source: string | null;
   ai_category_confidence: number | null;
@@ -24,6 +28,19 @@ export type Approval = {
   request_id: string;
   decision: "approved" | "rejected";
   comment: string | null;
+  approver_name: string | null;
+  approver_email: string | null;
+  created_at: string;
+};
+
+export type Attachment = {
+  id: string;
+  request_id: string;
+  user_id: string;
+  path: string;
+  filename: string;
+  content_type: string;
+  size_bytes: number;
   created_at: string;
 };
 
@@ -46,6 +63,8 @@ export type AuditLog = {
 
 export type FormState = {
   error?: string;
+  /** Machine-readable reason for the error, when the UI needs to react (e.g. "already_decided"). */
+  code?: string;
   fieldErrors?: Record<string, string>;
   values?: Record<string, string>;
 };

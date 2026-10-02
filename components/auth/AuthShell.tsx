@@ -52,7 +52,7 @@ export function AuthShell({
           <BrandMark size={56} className="drop-shadow-sm" />
           <p className="mt-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-gold">
             <ShieldIcon />
-            <span>Procurement &amp; Capex Governance</span>
+            <span>Staff purchase requests</span>
           </p>
           <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-ink sm:text-5xl">
             Purchase Approvals
@@ -74,7 +74,7 @@ export function AuthShell({
 }
 
 export const primaryButton =
-  "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-brand-600 px-5 py-3 text-base font-semibold text-white shadow-[0_8px_18px_-6px_rgba(176,30,35,0.55)] transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60";
+  "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-brand-600 px-5 py-3 text-base font-semibold text-white shadow-[0_8px_18px_-6px_rgba(176,30,35,0.55)] transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-brand-900 disabled:shadow-none";
 
 export const linkClass =
   "inline-flex min-h-11 items-center rounded-md font-semibold text-brand-700 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600";

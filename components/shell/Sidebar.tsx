@@ -8,11 +8,13 @@ import { BrandMark } from "@/components/BrandMark";
 
 type ShellUser = { name: string; email: string; role: string; canApprove: boolean; isAdmin: boolean };
 
+const ROLE_LABEL: Record<string, string> = { requester: "Staff", approver: "Approver", admin: "Admin" };
+
 const NAV: { href: string; label: string; approverOnly?: boolean; adminOnly?: boolean }[] = [
   { href: "/", label: "Requests" },
-  { href: "/requests/new", label: "New Request" },
+  { href: "/requests/new", label: "New request" },
   { href: "/approvals", label: "Approvals", approverOnly: true },
-  { href: "/categories", label: "Categories" },
+  { href: "/categories", label: "Categories", adminOnly: true },
   { href: "/audit", label: "Audit" },
   { href: "/users", label: "Users", adminOnly: true },
 ];
@@ -24,7 +26,7 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-export function Sidebar({ user }: { user: ShellUser }) {
+export function Sidebar({ user, pendingCount = 0 }: { user: ShellUser; pendingCount?: number }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -94,13 +96,23 @@ export function Sidebar({ user }: { user: ShellUser }) {
               : "text-ink hover:bg-sunken active:bg-sunken"
           }`}
         >
-          {n.label}
+          <span className="min-w-0 flex-1">{n.href === "/audit" ? (user.canApprove ? "Audit trail" : "My activity") : n.label}</span>
+          {n.href === "/approvals" && pendingCount > 0 && (
+            <span
+              className={`ml-2 inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-xs font-bold ${
+                isActive(pathname, n.href) ? "bg-white text-brand-700" : "bg-brand-600 text-white"
+              }`}
+            >
+              {pendingCount > 99 ? "99+" : pendingCount}
+              <span className="sr-only"> waiting for you</span>
+            </span>
+          )}
         </Link>
       ))}
       <div className="mt-4 border-t border-line px-1 pt-3 text-sm">
         <p className="truncate font-semibold text-ink">{user.name}</p>
         <p className="truncate text-xs text-muted">
-          {user.email} · {user.role}
+          {user.email} · {ROLE_LABEL[user.role] ?? user.role}
         </p>
         <form action={signOut}>
           <button className="btn-secondary mt-2 w-full justify-start px-4">
