@@ -1,5 +1,30 @@
 @import "tailwindcss";
 
+/* Brand tokens (SPB identity: deep red, warm neutrals, serif type). Use these utilities everywhere:
+   bg-brand-600, text-brand-700, border-line, bg-surface, text-ink, text-muted, font-sans (= serif). */
+@theme {
+  --color-brand-50: #fdf3f3;
+  --color-brand-100: #fbe3e3;
+  --color-brand-200: #f4c4c5;
+  --color-brand-300: #e99799;
+  --color-brand-400: #d85f63;
+  --color-brand-500: #c23a3f;
+  --color-brand-600: #b01e23;
+  --color-brand-700: #8f171b;
+  --color-brand-800: #721417;
+  --color-brand-900: #5b1214;
+
+  --color-surface: #faf8f5; /* page background */
+  --color-panel: #ffffff; /* cards, sidebar */
+  --color-sunken: #f3efea; /* inputs, quiet blocks */
+  --color-line: #e6dfd8; /* borders, dividers */
+  --color-ink: #2a2422; /* primary text */
+  --color-muted: #6b615c; /* secondary text (AA on surface and panel) */
+  --color-gold: #8a6a3b; /* small caps labels, accents */
+
+  --font-sans: var(--font-source-serif), "Source Serif 4", Georgia, "Times New Roman", serif;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;

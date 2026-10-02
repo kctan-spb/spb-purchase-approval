@@ -1,5 +1,12 @@
 import type { Metadata, Viewport } from "next";
+import { Source_Serif_4 } from "next/font/google";
 import "./globals.css";
+
+const serif = Source_Serif_4({
+  subsets: ["latin"],
+  variable: "--font-source-serif",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Purchase Approvals",
@@ -10,14 +17,14 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#ffffff",
+  themeColor: "#faf8f5",
   colorScheme: "light",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="min-h-dvh bg-slate-50 text-slate-900 antialiased">{children}</body>
+    <html lang="en" className={serif.variable}>
+      <body className="min-h-dvh bg-surface text-ink antialiased">{children}</body>
     </html>
   );
 }
