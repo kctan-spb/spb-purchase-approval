@@ -44,6 +44,8 @@ export async function updateSession(request: NextRequest) {
     const login = new URL("/login", request.url);
     return NextResponse.redirect(login);
   }
+  // /onboarding is intentionally NOT public: it requires a signed-in user (handled above) but no
+  // organization. The (app) layout sends signed-in users without an org there.
   if (user && request.nextUrl.pathname === "/login") {
     return NextResponse.redirect(new URL("/", request.url));
   }
