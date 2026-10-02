@@ -21,7 +21,7 @@ export function RequestList({
             href="/requests/new"
             className="btn-primary mt-4"
           >
-            New Request
+            New request
           </Link>
         )}
       </div>
@@ -51,6 +51,9 @@ export function RequestList({
             <div className="mt-2 flex items-baseline justify-between gap-3">
               <span className="shrink-0 text-lg font-semibold whitespace-nowrap tabular-nums text-ink">
                 {formatMoney(r.amount, r.currency)}
+                {r.currency !== "MYR" && r.amount_myr !== null && (
+                  <span className="ml-2 text-sm font-normal text-muted">≈ {formatMoney(r.amount_myr, "MYR")}</span>
+                )}
               </span>
               <span className="min-w-0 truncate text-xs text-muted">Submitted {formatDate(r.created_at)}</span>
             </div>

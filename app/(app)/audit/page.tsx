@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { listAuditLogs } from "@/features/audit/data";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatMoney } from "@/lib/format";
 import { filterQuery, resolveTimeframe } from "@/lib/timeframe";
 import { TimeFrameFields } from "@/components/TimeFrameFields";
 import { ExportButton } from "@/components/ExportButton";
+import { getCurrentUser, ROLE_LABEL } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,8 @@ export default async function AuditPage({
   searchParams: Promise<{ range?: string; from?: string; to?: string }>;
 }) {
   const tf = resolveTimeframe(await searchParams);
-  const logs = await listAuditLogs(200, { from: tf.from, to: tf.to });
+  const [logs, user] = await Promise.all([listAuditLogs(200, { from: tf.from, to: tf.to }), getCurrentUser()]);
+  const canApprove = !!user?.canApprove;
   const exportHref = `/api/export?${filterQuery({
     type: "audit",
     range: tf.range === "all" ? undefined : tf.range,
@@ -33,10 +35,12 @@ export default async function AuditPage({
     <div className="mx-auto max-w-4xl">
       <div className="mb-3 flex items-end justify-between gap-3">
         <div className="min-w-0">
-          <p className="eyebrow">Governance</p>
-          <h1 className="page-title">Audit trail</h1>
+          <h1 className="page-title">{canApprove ? "Audit trail" : "Your activity"}</h1>
+          {!canApprove && (
+            <p className="mt-1 text-sm text-muted">What you did, and what happened to the requests you submitted.</p>
+          )}
         </div>
-        <ExportButton href={exportHref} label="Export CSV" />
+        {canApprove && <ExportButton href={exportHref} label="Export CSV" />}
       </div>
       <form method="get" className="mb-4 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center">
         <TimeFrameFields range={tf.range} from={tf.fromInput} to={tf.toInput} />
@@ -45,7 +49,7 @@ export default async function AuditPage({
         </button>
       </form>
       <p className="mb-4 text-xs text-muted">
-        Showing: {tf.label}. The latest 200 entries are listed here; the CSV contains all of them.
+        Showing: {tf.label}. The latest 200 entries are listed here{canApprove ? "; the CSV contains all of them" : ""}.
       </p>
       {logs.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-line bg-panel p-8 text-center text-muted shadow-sm shadow-sm">
@@ -56,11 +60,23 @@ export default async function AuditPage({
           {logs.map((l) => {
             const d = (l.details ?? {}) as Record<string, unknown>;
             const who = (d.approver ?? d.requested_by) as string | undefined;
+            const role = (r: unknown) => ROLE_LABEL[String(r)] ?? String(r);
+            const limit = (v: unknown) => (v === null || v === undefined ? "default" : formatMoney(Number(v), "MYR"));
+            const amountMyr = d.amount_myr !== null && d.amount_myr !== undefined ? Number(d.amount_myr) : undefined;
             const note = (d.comment ??
-              d.name ??
+              (d.role_to
+                ? `Role: ${role(d.role_from)} → ${role(d.role_to)}${
+                    "limit_to" in d || "limit_from" in d ? ` · limit ${limit(d.limit_from)} → ${limit(d.limit_to)}` : ""
+                  }`
+                : undefined) ??
               (d.from ? `${d.from} → ${d.to}` : undefined) ??
               (d.export ? `${d.export} export · ${d.rows} rows · ${d.timeframe}` : undefined) ??
-              (d.role_to ? `role: ${d.role_from} → ${d.role_to}` : undefined)) as string | undefined;
+              (l.action === "create" && d.amount !== undefined
+                ? `${formatMoney(Number(d.amount), String(d.currency ?? "MYR"))}${
+                    amountMyr !== undefined && d.currency && d.currency !== "MYR" ? ` (about ${formatMoney(amountMyr, "MYR")})` : ""
+                  }${d.vendor ? ` · ${d.vendor}` : ""}`
+                : undefined) ??
+              d.name) as string | undefined;
             return (
               <li key={l.id} className="card p-3 sm:px-4">
                 <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">

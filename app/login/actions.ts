@@ -13,7 +13,11 @@ export async function signIn(_prev: FormState, fd: FormData): Promise<FormState>
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: "Invalid email or password.", values: { email } };
+  if (error)
+    return {
+      error: "Check your email and password. If you just signed up, confirm your email first.",
+      values: { email },
+    };
   redirect("/");
 }
 
@@ -30,7 +34,8 @@ export async function signUp(_prev: FormState, fd: FormData): Promise<FormState>
   if (Object.keys(fieldErrors).length) return { fieldErrors, values };
 
   const h = await headers();
-  const origin = h.get("origin") ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
+  // Redirect links are built from the configured app URL; the request origin is only a fallback.
+  const origin = (process.env.NEXT_PUBLIC_APP_URL || h.get("origin") || "").replace(/\/+$/, "");
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -45,7 +50,7 @@ export async function signUp(_prev: FormState, fd: FormData): Promise<FormState>
   }
   // With email confirmation enabled there is no session yet.
   if (!data.session)
-    return { error: undefined, values, fieldErrors: { notice: "Check your email to confirm your account, then sign in." } };
+    return { error: undefined, values, fieldErrors: { notice: "Check your email to confirm your account, then sign in. If you do not see it, look in your Junk or Spam folder too." } };
   redirect("/");
 }
 

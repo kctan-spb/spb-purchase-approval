@@ -2,7 +2,7 @@ import Link from "next/link";
 import { listRequests, spendingSummary } from "@/features/requests/data";
 import { listCategories } from "@/features/categories/data";
 import { RequestList } from "@/features/requests/components/RequestList";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, formatTotals } from "@/lib/format";
 import { filterQuery, resolveTimeframe } from "@/lib/timeframe";
 import { TimeFrameFields } from "@/components/TimeFrameFields";
 import { ExportButton } from "@/components/ExportButton";
@@ -41,7 +41,6 @@ export default async function Home({
     <div className="mx-auto max-w-4xl">
       <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <p className="eyebrow">Requests</p>
           <h1 className="page-title">Purchase requests</h1>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
@@ -50,7 +49,7 @@ export default async function Home({
             href="/requests/new"
             className="btn-primary shrink-0 px-4"
           >
-            New Request
+            New request
           </Link>
         </div>
       </div>
@@ -58,17 +57,26 @@ export default async function Home({
         Showing: {tf.label}. Totals and the CSV export follow the filters below.
       </p>
 
-      <div className="mb-5 grid grid-cols-2 gap-3 sm:mb-6">
-        <div className="card min-w-0 border-t-4 border-t-amber-500 p-3 sm:p-4">
-          <p className="text-xs font-semibold tracking-[0.16em] text-amber-900 uppercase">Pending</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums break-words text-ink sm:text-2xl">{formatMoney(summary.pendingTotal)}</p>
-          <p className="text-xs text-muted">{summary.pendingCount} requests</p>
-        </div>
-        <div className="card min-w-0 border-t-4 border-t-emerald-600 p-3 sm:p-4">
-          <p className="text-xs font-semibold tracking-[0.16em] text-emerald-900 uppercase">Approved</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums break-words text-ink sm:text-2xl">{formatMoney(summary.approvedTotal)}</p>
-          <p className="text-xs text-muted">{summary.approvedCount} requests</p>
-        </div>
+      <div className="mb-5 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:mb-6">
+        {(
+          [
+            ["Pending", summary.pending, "border-t-amber-500", "text-amber-900"],
+            ["Approved", summary.approved, "border-t-emerald-600", "text-emerald-900"],
+          ] as const
+        ).map(([label, s, border, text]) => (
+          <div key={label} className={`card min-w-0 border-t-4 ${border} p-3 sm:p-4`}>
+            <p className={`text-xs font-semibold tracking-[0.16em] ${text} uppercase`}>{label}</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums break-words text-ink sm:text-2xl">
+              {formatTotals(s.byCurrency)}
+            </p>
+            {s.byCurrency.some((c) => c.currency !== "MYR") && s.totalMyr !== null && (
+              <p className="text-sm text-ink">About {formatMoney(s.totalMyr, "MYR")} in total</p>
+            )}
+            <p className="text-xs text-muted">
+              {s.count} {s.count === 1 ? "request" : "requests"}
+            </p>
+          </div>
+        ))}
       </div>
 
       <form method="get" className="mb-4 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center">

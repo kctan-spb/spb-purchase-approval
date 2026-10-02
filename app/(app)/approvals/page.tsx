@@ -12,10 +12,11 @@ export default async function ApprovalsPage() {
   const pending = await listPendingRequests();
   return (
     <div className="mx-auto max-w-4xl">
-      <p className="eyebrow">Approvals</p>
       <h1 className="page-title mb-1">Pending approvals</h1>
       <p className="mb-6 text-sm text-muted">
-        Pending requests, highest priority first (amount, age, non-routine). Open one to approve or reject.
+        Pending requests, highest priority first (amount, age, non-routine). Open one to approve or reject. You can
+        only decide requests you did not raise and that are within your approval limit; the number next to
+        Approvals in the menu counts those.
       </p>
       <RequestList
         requests={pending}

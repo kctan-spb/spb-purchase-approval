@@ -8,6 +8,9 @@ export const RANGES = [
   { value: "7d", label: "Last 7 days" },
   { value: "30d", label: "Last 30 days" },
   { value: "month", label: "This month" },
+  { value: "lastmonth", label: "Last month" },
+  { value: "quarter", label: "This quarter" },
+  { value: "year", label: "This year" },
   { value: "custom", label: "Custom range" },
 ] as const;
 
@@ -41,10 +44,12 @@ function parseDay(v: string | undefined): number | undefined {
 const fmt = (ms: number) =>
   new Date(ms).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "Asia/Kuala_Lumpur" });
 
-export function resolveTimeframe(sp: { range?: string; from?: string; to?: string } = {}): Timeframe {
+export function resolveTimeframe(
+  sp: { range?: string; from?: string; to?: string } = {},
+  now: number = Date.now(),
+): Timeframe {
   const known = RANGES.some((r) => r.value === sp.range);
   const range: Range = known ? (sp.range as Range) : sp.from || sp.to ? "custom" : "all";
-  const now = Date.now();
   const today = dayStart(now);
   const base = { fromInput: "", toInput: "" };
 
@@ -59,6 +64,22 @@ export function resolveTimeframe(sp: { range?: string; from?: string; to?: strin
       const t = new Date(now + MYT_MS);
       const start = Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), 1) - MYT_MS;
       return { ...base, range, from: new Date(start).toISOString(), label: "This month" };
+    }
+    case "lastmonth": {
+      const t = new Date(now + MYT_MS);
+      const start = Date.UTC(t.getUTCFullYear(), t.getUTCMonth() - 1, 1) - MYT_MS;
+      const end = Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), 1) - MYT_MS; // exclusive
+      return { ...base, range, from: new Date(start).toISOString(), to: new Date(end).toISOString(), label: "Last month" };
+    }
+    case "quarter": {
+      const t = new Date(now + MYT_MS);
+      const start = Date.UTC(t.getUTCFullYear(), Math.floor(t.getUTCMonth() / 3) * 3, 1) - MYT_MS;
+      return { ...base, range, from: new Date(start).toISOString(), label: "This quarter" };
+    }
+    case "year": {
+      const t = new Date(now + MYT_MS);
+      const start = Date.UTC(t.getUTCFullYear(), 0, 1) - MYT_MS;
+      return { ...base, range, from: new Date(start).toISOString(), label: "This year" };
     }
     case "custom": {
       let f = parseDay(sp.from);

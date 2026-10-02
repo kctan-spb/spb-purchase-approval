@@ -1,24 +1,7 @@
 import { getDb } from "@/lib/db/client";
-import { getCurrentUser } from "@/lib/auth";
 import type { AuditLog } from "@/lib/db/types";
 
-export async function writeAuditLog(entry: {
-  action: string;
-  entity_type?: string;
-  entity_id: string | null;
-  details?: Record<string, unknown>;
-}) {
-  const db = await getDb();
-  const user = await getCurrentUser();
-  const { error } = await db.from("audit_logs").insert({
-    user_id: user?.id ?? null,
-    action: entry.action,
-    entity_type: entry.entity_type ?? "purchase_request",
-    entity_id: entry.entity_id,
-    details: entry.details ?? null,
-  });
-  if (error) throw new Error(`Audit log write failed: ${error.message}`);
-}
+// Read-only. Every audit row is written by database triggers/functions, never by the app.
 
 export async function listAuditLogs(
   limit = 200,

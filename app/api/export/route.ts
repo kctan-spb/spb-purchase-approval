@@ -3,11 +3,12 @@ import { getDb } from "@/lib/db/client";
 import { getCurrentUser } from "@/lib/auth";
 import { toCsv } from "@/lib/csv";
 import { resolveTimeframe } from "@/lib/timeframe";
-import { writeAuditLog } from "@/features/audit/data";
 
 export const dynamic = "force-dynamic";
 
 const PAGE = 1000; // PostgREST returns at most 1000 rows per request
+const MAX_ROWS = 20_000;
+const CHUNK = 150; // request ids per "in" filter (keeps the URL short)
 
 type Page<T> = PromiseLike<{ data: T[] | null; error: { message: string } | null }>;
 
@@ -27,22 +28,50 @@ const myt = (iso: string | null | undefined) =>
 type Details = Record<string, unknown> | null;
 const str = (d: Details, k: string) => (d && typeof d[k] === "string" ? (d[k] as string) : "");
 
+const text = (body: string, status: number) =>
+  new NextResponse(body, { status, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
+
 // Exports exactly what the signed-in user may see (RLS applies): requesters get their own
 // requests, approvers/admins get the whole organization. Honors the status/category/time filters.
+// The export itself is recorded by the database function log_export BEFORE any data is returned;
+// if that fails the export fails.
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser();
-  if (!user) return new NextResponse("Unauthorized", { status: 401 });
+  if (!user) return text("Unauthorized", 401);
 
   const sp = request.nextUrl.searchParams;
   const type = sp.get("type") === "audit" ? "audit" : "requests";
+  if (type === "audit" && !user.canApprove) return text("Only approvers and admins can export the audit trail.", 403);
+
   const tf = resolveTimeframe({
     range: sp.get("range") ?? undefined,
     from: sp.get("from") ?? undefined,
     to: sp.get("to") ?? undefined,
   });
+  const status = sp.get("status");
+  const category = sp.get("category");
   const db = await getDb();
 
   try {
+    // 1. Size check, so a huge export is refused instead of timing out.
+    let countQ =
+      type === "audit"
+        ? db.from("audit_logs").select("id", { count: "exact", head: true })
+        : db.from("purchase_requests").select("id", { count: "exact", head: true });
+    if (type === "requests") {
+      if (status) countQ = countQ.eq("status", status);
+      if (category) countQ = countQ.eq("category", category);
+    }
+    if (tf.from) countQ = countQ.gte("created_at", tf.from);
+    if (tf.to) countQ = countQ.lt("created_at", tf.to);
+    const { count, error: countErr } = await countQ;
+    if (countErr) throw new Error(countErr.message);
+    if ((count ?? 0) > MAX_ROWS)
+      return text(
+        `This export would contain ${(count ?? 0).toLocaleString("en-MY")} rows. The limit is ${MAX_ROWS.toLocaleString("en-MY")}. Choose a shorter time frame and try again.`,
+        413,
+      );
+
     let headers: string[];
     let rows: unknown[][];
 
@@ -76,8 +105,6 @@ export async function GET(request: NextRequest) {
         l.user_id,
       ]);
     } else {
-      const status = sp.get("status");
-      const category = sp.get("category");
       const reqs = await fetchAll<{
         id: string;
         created_at: string;
@@ -85,14 +112,19 @@ export async function GET(request: NextRequest) {
         description: string;
         amount: number | string;
         currency: string;
+        amount_myr: number | string | null;
         category: string | null;
         vendor: string | null;
         routine: boolean;
         status: string;
+        requester_name: string | null;
+        requester_email: string | null;
       }>((a, b) => {
         let q = db
           .from("purchase_requests")
-          .select("id, created_at, title, description, amount, currency, category, vendor, routine, status")
+          .select(
+            "id, created_at, title, description, amount, currency, amount_myr, category, vendor, routine, status, requester_name, requester_email",
+          )
           .order("created_at", { ascending: false })
           .order("id")
           .range(a, b);
@@ -103,43 +135,47 @@ export async function GET(request: NextRequest) {
         return q;
       });
 
-      const approvals = await fetchAll<{
+      // Decisions and attachment counts for exactly these requests (read from approvals / request
+      // columns, not from audit details).
+      type Decision = {
         request_id: string;
         decision: string;
         comment: string | null;
         created_at: string;
-      }>((a, b) =>
-        db
-          .from("approvals")
-          .select("request_id, decision, comment, created_at")
-          .order("id")
-          .range(a, b),
-      );
-      const logs = await fetchAll<{ entity_id: string | null; action: string; details: Details }>((a, b) =>
-        db
-          .from("audit_logs")
-          .select("entity_id, action, details")
-          .eq("entity_type", "purchase_request")
-          .in("action", ["create", "approve", "reject"])
-          .order("id")
-          .range(a, b),
-      );
-
-      const decision = new Map(approvals.map((x) => [x.request_id, x]));
-      const requestedBy = new Map<string, string>();
-      const decidedBy = new Map<string, string>();
-      for (const l of logs) {
-        if (!l.entity_id) continue;
-        if (l.action === "create") requestedBy.set(l.entity_id, str(l.details, "requested_by"));
-        else decidedBy.set(l.entity_id, str(l.details, "approver"));
+        approver_name: string | null;
+        approver_email: string | null;
+      };
+      const decisions = new Map<string, Decision>();
+      const attachmentCount = new Map<string, number>();
+      const ids = reqs.map((r) => r.id);
+      const chunks: string[][] = [];
+      for (let i = 0; i < ids.length; i += CHUNK) chunks.push(ids.slice(i, i + CHUNK));
+      for (let i = 0; i < chunks.length; i += 5) {
+        await Promise.all(
+          chunks.slice(i, i + 5).map(async (chunk) => {
+            const [ap, at] = await Promise.all([
+              db
+                .from("approvals")
+                .select("request_id, decision, comment, created_at, approver_name, approver_email")
+                .in("request_id", chunk),
+              db.from("request_attachments").select("request_id").in("request_id", chunk),
+            ]);
+            if (ap.error) throw new Error(ap.error.message);
+            if (at.error) throw new Error(at.error.message);
+            for (const d of (ap.data ?? []) as Decision[]) decisions.set(d.request_id, d);
+            for (const a of (at.data ?? []) as { request_id: string }[])
+              attachmentCount.set(a.request_id, (attachmentCount.get(a.request_id) ?? 0) + 1);
+          }),
+        );
       }
 
       headers = [
-        "Request ID", "Submitted (MYT)", "Title", "Description", "Amount", "Currency", "Category", "Vendor",
-        "Routine", "Status", "Requested by", "Decision", "Decision comment", "Decided by", "Decided (MYT)",
+        "Request ID", "Submitted (MYT)", "Title", "Description", "Amount", "Currency", "Amount (MYR)", "Category",
+        "Vendor", "Routine", "Status", "Requested by", "Requester email", "Decision", "Decision comment",
+        "Decided by", "Decider email", "Decided (MYT)", "Attachments",
       ];
       rows = reqs.map((r) => {
-        const d = decision.get(r.id);
+        const d = decisions.get(r.id);
         return [
           r.id,
           myt(r.created_at),
@@ -147,32 +183,39 @@ export async function GET(request: NextRequest) {
           r.description,
           Number(r.amount),
           r.currency,
+          r.amount_myr === null || r.amount_myr === undefined ? "" : Number(r.amount_myr),
           r.category,
           r.vendor,
           r.routine ? "Yes" : "No",
           r.status,
-          requestedBy.get(r.id) ?? "",
+          r.requester_name ?? "",
+          r.requester_email ?? "",
           d?.decision ?? "",
           d?.comment ?? "",
-          decidedBy.get(r.id) ?? "",
+          d?.approver_name ?? "",
+          d?.approver_email ?? "",
           myt(d?.created_at),
+          attachmentCount.get(r.id) ?? 0,
         ];
       });
     }
 
-    // Data leaving the system is itself audited. A failure here must not block the download.
-    try {
-      await writeAuditLog({
-        action: "export",
-        entity_type: "export",
-        entity_id: null,
-        details: { export: type, rows: rows.length, timeframe: tf.label, status: sp.get("status"), category: sp.get("category") },
-      });
-    } catch {}
+    // 2. Data leaving the system is audited FIRST. If that cannot be recorded, nothing is handed over.
+    const { error: logErr } = await db.rpc("log_export", {
+      p_type: type,
+      p_rows: rows.length,
+      p_timeframe: tf.label,
+      p_status: type === "requests" ? status : null,
+      p_category: type === "requests" ? category : null,
+    });
+    if (logErr) {
+      if (logErr.message.includes("forbidden")) return text("Only approvers and admins can export the audit trail.", 403);
+      return text("The export could not be recorded, so it was not produced. Please try again.", 500);
+    }
 
     const day = new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10);
     const slug = tf.label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    const name = `${type === "audit" ? "audit-trail" : "purchase-requests"}_${day}_${slug}.csv`;
+    const name = `${type === "audit" ? "audit-trail" : "purchase-requests"}_${day}_${slug}_${rows.length}-rows.csv`;
     return new NextResponse(toCsv(headers, rows), {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
@@ -181,6 +224,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch {
-    return new NextResponse("Export failed. Please try again.", { status: 500 });
+    return text("Export failed. Please try again.", 500);
   }
 }

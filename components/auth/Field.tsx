@@ -20,6 +20,7 @@ export function Field({
   autoComplete,
   labelAside,
   enterKeyHint,
+  hint,
 }: {
   label: string;
   name: string;
@@ -30,9 +31,12 @@ export function Field({
   autoComplete?: string;
   labelAside?: React.ReactNode;
   enterKeyHint?: "next" | "go" | "done";
+  hint?: string;
 }) {
   const id = useId();
   const errId = `${id}-err`;
+  const hintId = `${id}-hint`;
+  const describedBy = [hint ? hintId : null, error ? errId : null].filter(Boolean).join(" ") || undefined;
   const [show, setShow] = useState(false);
   const isPw = kind === "password";
 
@@ -64,7 +68,7 @@ export function Field({
           enterKeyHint={enterKeyHint}
           defaultValue={defaultValue}
           aria-invalid={error ? true : undefined}
-          aria-describedby={error ? errId : undefined}
+          aria-describedby={describedBy}
           className={`block min-h-12 w-full rounded-2xl border bg-sunken py-3 pl-11 text-base text-ink placeholder:text-muted/70 focus-visible:border-brand-600 focus-visible:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 ${
             isPw ? "pr-14" : "pr-4"
           } ${error ? "border-brand-500" : "border-line"}`}
@@ -85,6 +89,11 @@ export function Field({
           </button>
         )}
       </div>
+      {hint && (
+        <p id={hintId} className="mt-1.5 text-sm text-muted">
+          {hint}
+        </p>
+      )}
       {error && (
         <p id={errId} role="alert" className="mt-1.5 text-sm text-brand-700">
           {error}

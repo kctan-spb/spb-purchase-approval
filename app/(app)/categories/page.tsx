@@ -8,7 +8,6 @@ export default async function CategoriesPage() {
   const [categories, user] = await Promise.all([listCategories(), getCurrentUser()]);
   return (
     <div className="mx-auto max-w-xl">
-      <p className="eyebrow">Governance</p>
       <h1 className="page-title mb-5 sm:mb-6">Categories</h1>
       {user?.isAdmin ? (
         <CategoryManager categories={categories} />
