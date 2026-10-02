@@ -1,21 +1,24 @@
-export default function Home() {
+import Link from "next/link";
+import { listRequests } from "@/features/requests/data";
+import { RequestList } from "@/features/requests/components/RequestList";
+
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const requests = await listRequests();
+
   return (
-    <main className="min-h-screen flex items-center justify-center p-8">
-      <div className="max-w-xl text-center space-y-4">
-        <h1 className="text-4xl font-bold tracking-tight">vibe-stack-supabase</h1>
-        <p className="text-neutral-500">
-          Edit{" "}
-          <code className="bg-neutral-100 px-1.5 py-0.5 rounded text-sm">
-            app/page.tsx
-          </code>{" "}
-          to start building.
-        </p>
-        <p className="text-xs text-neutral-400">
-          See{" "}
-          <code className="bg-neutral-100 px-1.5 py-0.5 rounded">CLAUDE.md</code>{" "}
-          for project conventions and gstack workflow.
-        </p>
+    <div className="mx-auto max-w-4xl">
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold">Purchase Requests</h1>
+        <Link
+          href="/requests/new"
+          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+        >
+          New Request
+        </Link>
       </div>
-    </main>
+      <RequestList requests={requests} />
+    </div>
   );
 }
